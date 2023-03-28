@@ -4,33 +4,59 @@ import pyheif
 import numpy as np
 import os
 from var_dump import var_dump
+import math
 # os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = "/home/madpre/.local/lib/python3.10/site-packages/cv2/qt/plugins"
 # os.environ["QT_DEBUG_PLUGINS"] = "1"
 
-
 def decode_qr_codes(frame):
-    qr_codes = pyzbar.decode(frame)
-    for qr_code in qr_codes:
-        x, y, w, h = qr_code.rect
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        var_dump(qr_code)
+    # Detect QR codes in the frame
+    decoded_objects = pyzbar.decode(frame)
 
-        data = qr_code.data.decode("utf-8")
-        print(f'Position: x = {x} / y = {y} / w = {w} / h = {h} / tekst = {qr_code.data.decode("utf-8")}')
-        cv2.putText(frame, data, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    return frame, [qr_code.data.decode("utf-8") for qr_code in qr_codes]
+    names = []
+    roles = []
+    #var_dump(decoded_objects)
+    
+    # Read names and roles from text files
+    with open("names.txt", "r") as f:
+        names_data = f.read().splitlines()
+    
+    with open("roles.txt", "r") as f:
+        roles_data = f.read().splitlines()
 
+    # Iterate over decoded QR codes and store their positions
+    for obj in decoded_objects:
+        data = obj.data.decode("utf-8")
+        position = obj.rect
+        if data in names_data:
+            names.append({"name": data, "position": position})
+        elif data in roles_data:
+            roles.append({"role": data, "position": position})
 
+    # Function to calculate the distance between two positions
+    def distance(a, b):
+        return math.sqrt((a.left - b.left) ** 2 + (a.top - b.top) ** 2)
 
-# Other functions (decode_qr_codes, etc.) remain the same
+    # Pair names and roles
+    pairs = []
+    for name in names:
+        closest_role = None
+        min_distance = float("inf")
+        for role in roles:
+            dist = distance(name["position"], role["position"])
+            if dist < min_distance:
+                min_distance = dist
+                closest_role = role
 
-def heic_to_opencv_image(file_path):
-    heif_file = pyheif.read(file_path)
-    return cv2.cvtColor(
-        cv2.imdecode(
-            np.frombuffer(heif_file.data, dtype=np.uint8),
-            cv2.IMREAD_COLOR),
-        cv2.COLOR_RGB2BGR)
+        if closest_role:
+            pairs.append((name["name"], closest_role["role"]))
+            roles.remove(closest_role)
+
+    # Write pairs to a text file
+    with open("paired_names_and_roles.txt", "w") as f:
+        for pair in pairs:
+            f.write(f"{pair[0]}: {pair[1]}\n")
+
+    return frame, pairs
 
 def main():
     # Replace this with the path to your HEIC image
@@ -43,7 +69,7 @@ def main():
 
     # Process the image and show the results
     frame, qr_codes = decode_qr_codes(frame)
-    cv2.imshow("QR Code Scanner", frame)
+    #cv2.imshow("QR Code Scanner", frame)
 
     # Process the QR codes and update the overlay
     for qr_code in qr_codes:
@@ -56,5 +82,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-if __name__ == "__main__":
-    main()
