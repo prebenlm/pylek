@@ -1,8 +1,8 @@
 import cv2
-from pyzbar import pyzbar
-import pyheif
-import numpy as np
 import os
+os.environ['DYLD_LIBRARY_PATH'] = '/opt/homebrew/opt/zbar/lib'
+from pyzbar import pyzbar
+import numpy as np
 from var_dump import var_dump
 import math
 # os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = "/home/madpre/.local/lib/python3.10/site-packages/cv2/qt/plugins"
@@ -76,8 +76,8 @@ def main():
         # Replace this with your custom logic to update the overlay
         print("QR code data:", qr_code)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
