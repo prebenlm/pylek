@@ -28,9 +28,10 @@ def get_arial_font_path():
 
 def add_label_to_image(image, label_text):
     img_width, img_height = image.size
-    font_size = 30
+    font_size = 20
     font_path = get_arial_font_path()
-    padding = 10
+    padding = 5
+    border_width = 5
 
     try:
         font = ImageFont.truetype(font_path, font_size)
@@ -40,17 +41,17 @@ def add_label_to_image(image, label_text):
     _, _, _, label_height = font.getbbox(label_text)
     label_height += padding * 2
 
-    new_img = Image.new("RGBA", (img_width, img_height + label_height), (255, 255, 255, 0))
-    new_img.paste(image, (0, 0), image)
+    new_img = Image.new("RGBA", (img_width + border_width * 2, img_height + label_height + border_width * 2), (255, 255, 255, 0))
+    new_img.paste(image, (border_width, border_width), image)
     draw = ImageDraw.Draw(new_img)
     text_bbox = draw.textbbox((0, 0), label_text, font=font)
     text_width = text_bbox[2] - text_bbox[0]
 
     # Draw black background for the label text
-    draw.rectangle([(0, img_height), (img_width, img_height + label_height)], fill="black")
+    draw.rectangle([(0, img_height + border_width), (img_width + border_width * 2, img_height + label_height + border_width * 2)], fill="black")
     
     # Draw white label text on the black background
-    draw.text(((img_width - text_width) / 2, img_height + padding), label_text, font=font, fill="white")
+    draw.text(((img_width - text_width) / 2 + border_width, img_height + padding + border_width), label_text, font=font, fill="white")
 
     return new_img
 
