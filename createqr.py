@@ -15,21 +15,35 @@ def create_qr_code(text, output_path):
     img = qr.make_image(fill_color="black", back_color="white")
     return img
 
+def get_arial_font_path():
+    if os.sys.platform.startswith('win'):
+        font_path = 'C:\\Windows\\Fonts\\arial.ttf'
+    elif os.sys.platform.startswith('darwin'):
+        font_path = '/System/Library/Fonts/Supplemental/Arial.ttf'
+    elif os.sys.platform.startswith('linux'):
+        font_path = '/usr/share/fonts/truetype/msttcorefonts/arial.ttf'
+    else:
+        raise Exception("Unsupported platform")
+    return font_path
+
 def add_label_to_image(image, label_text):
     img_width, img_height = image.size
-    font_size = 20
-    
+    font_size = 30
+    font_path = get_arial_font_path()
+
     try:
-        font = ImageFont.truetype("arial.ttf", font_size)
+        font = ImageFont.truetype(font_path, font_size)
     except OSError:
         font = ImageFont.load_default()
 
-    label_height = font.getsize(label_text)[1] + 10
+    _, _, _, label_height = font.getbbox(label_text)
+    label_height += 10
 
     new_img = Image.new("RGB", (img_width, img_height + label_height), "white")
     new_img.paste(image, (0, 0))
     draw = ImageDraw.Draw(new_img)
-    text_width, text_height = draw.textsize(label_text, font)
+    text_width, text_height = draw.textbbox((0, 0), label_text, font)[:2]
+    print(f"{img_width}-{text_width}/2")
     draw.text(((img_width - text_width) / 2, img_height), label_text, font=font, fill="black")
 
     return new_img
