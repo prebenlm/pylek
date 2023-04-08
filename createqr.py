@@ -28,7 +28,7 @@ def get_arial_font_path():
 
 def add_label_to_image(image, label_text):
     img_width, img_height = image.size
-    font_size = 30
+    font_size = 50
     font_path = get_arial_font_path()
 
     try:
@@ -42,8 +42,8 @@ def add_label_to_image(image, label_text):
     new_img = Image.new("RGB", (img_width, img_height + label_height), "white")
     new_img.paste(image, (0, 0))
     draw = ImageDraw.Draw(new_img)
-    text_width, text_height = draw.textbbox((0, 0), label_text, font)[:2]
-    print(f"{img_width}-{text_width}/2")
+    text_bbox = draw.textbbox((0, 0), label_text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
     draw.text(((img_width - text_width) / 2, img_height), label_text, font=font, fill="black")
 
     return new_img
